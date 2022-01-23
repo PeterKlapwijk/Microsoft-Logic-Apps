@@ -21,4 +21,4 @@
 1. Repeat steps for other connections
 1. Done!
 
-Read more on this topic in the related [Blog Post](https://www.inthecloud247.com/get-notified-on-expiring-azure-app-registration-client-secrets/)
+For more informations and the **requirements** for this Logic Apps flow read the related [Blog Post](https://www.inthecloud247.com/get-notified-on-expiring-azure-app-registration-client-secrets/)
