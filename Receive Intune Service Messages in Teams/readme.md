@@ -20,5 +20,5 @@
 1. Click Save
 1. Done!
 
-For more informations and the requirements for this Logic Apps flow read the related [Blog Post](https://www.inthecloud247.com/get-notified-on-expiring-azure-app-registration-client-secrets/)
+For more informations and the **requirements** for this Logic Apps flow read the related [Blog Post](https://www.inthecloud247.com/get-notified-on-expiring-azure-app-registration-client-secrets/)
 
