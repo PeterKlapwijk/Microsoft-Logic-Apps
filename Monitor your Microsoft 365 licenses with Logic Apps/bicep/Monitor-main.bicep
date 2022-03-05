@@ -58,7 +58,7 @@ resource workflows_Monitor_main_name_resource 'Microsoft.Logic/workflows@2019-05
                     }
                     host: {
                       connection: {
-                        name: '@parameters(\'$connections\')[${connections_office365_name}][\'connectionId\']'
+                        name: '@parameters(\'$connections\')[\${connections_office365_name}`][\'connectionId\']'
 
 
                       }
