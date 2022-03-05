@@ -2,7 +2,7 @@ param connections_office365_name string = 'office365'
 param workflows_Monitor_main_name string = 'Monitor-LogicApp'
 param userAssignedIdentities_Monitor_Identity_name string = 'Monitor-ManagedIdentity'
 param ResourceGroupName string
-param resourceLocation string = resourceGroup().location
+param resourceLocation string
 
 
 module managedIdentityDeployment 'Monitor-ManagedIdentity.bicep' = {
