@@ -1,5 +1,6 @@
 param connections_office365_name string = 'office365'
 param resourceLocation string = resourceGroup().location
+param ResourceGroupName string
 param EmailFrom string
 
 resource connections_office365_name_resource 'Microsoft.Web/connections@2016-06-01' = {
@@ -26,6 +27,10 @@ resource connections_office365_name_resource 'Microsoft.Web/connections@2016-06-
       type: 'Microsoft.Web/locations/managedApis'
     }
     testLinks: [
+      {
+        requestUri: 'https://management.azure.com:443/${subscription().id}/resourceGroups/${ResourceGroupName}/providers/Microsoft.Web/connections/${connections_office365_name}/extensions/proxy/testconnection?api-version=2016-06-01'
+        method: 'get'
+      }
 
     ]
   }
