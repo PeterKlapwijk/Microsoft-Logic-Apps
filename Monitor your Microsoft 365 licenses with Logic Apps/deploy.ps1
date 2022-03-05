@@ -6,7 +6,7 @@ param (
     [Parameter(Mandatory = $false)]
     [string]
     $SubscriptionId = "",
-    [Parameter(Mandatory = $false)]
+    [Parameter(Mandatory = $true)]
     [string]
     $ResourceGroupName
 )
