@@ -8,13 +8,7 @@ param (
     $SubscriptionId = "",
     [Parameter(Mandatory = $true)]
     [string]
-    $ResourceGroupName,
-    [Parameter(Mandatory = $true)]
-    [string]
-    $EmailFrom,
-    [Parameter(Mandatory = $true)]
-    [string]
-    $EmailTo
+    $ResourceGroupName
 
 )
 

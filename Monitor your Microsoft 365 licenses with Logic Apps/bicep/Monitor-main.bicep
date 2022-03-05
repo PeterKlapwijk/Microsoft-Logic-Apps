@@ -2,8 +2,7 @@ param workflows_Monitor_main_name string
 param connections_office365_name string = 'office365'
 param resourceLocation string = resourceGroup().location
 param userAssignedIdentities_Monitor_Identity_name string = 'Monitor-ManagedIdentity'
-param EmailFrom string
-param EmailTo string
+
 
 
 resource workflows_Monitor_main_name_resource 'Microsoft.Logic/workflows@2019-05-01' = {
@@ -52,14 +51,14 @@ resource workflows_Monitor_main_name_resource 'Microsoft.Logic/workflows@2019-05
                     body: {
                       Body: '<p>Hi,<br>\n<br>\nWe are running out of licenses for<strong> </strong><strong>@{body(\'Parse_JSON_GET_one_Sku_enabled\')?[\'skuPartNumber\']}</strong><strong></strong><br>\nHere is an overview of the consumpted and avialable licenses:<br>\nTotal number of licenses @{body(\'Parse_JSON_GET_one_Sku_enabled\')?[\'prepaidUnits\']?[\'enabled\']}<br>\nTotal number of available licenses: @{sub(body(\'Parse_JSON_GET_one_Sku_enabled\')?[\'prepaidUnits\']?[\'enabled\'],body(\'Parse_JSON_GET_one_Sku_enabled\')?[\'consumedUnits\'])}</p>'
                       Importance: 'High'
-                      MailboxAddress: EmailFrom
+                      MailboxAddress: ''
                       Subject: 'We are running out of licenses for @{body(\'Parse_JSON_GET_one_Sku_enabled\')?[\'skuPartNumber\']}'
-                      To: EmailTo
+                      To: ''
                     }
                     host: {
                       connection: {
                         name: '@parameters(\'$connections\')[\${connections_office365_name}`][\'connectionId\']'
-
+                    
 
                       }
                     }
@@ -201,9 +200,9 @@ resource workflows_Monitor_main_name_resource 'Microsoft.Logic/workflows@2019-05
                     body: {
                       Body: '<p>Hi,<br>\n<br>\nThis license is expired<strong> </strong><strong>@{body(\'Parse_JSON_GET_one_Sku_warning\')?[\'skuPartNumber\']}</strong><strong>,</strong> but the license is still assigned to @{body(\'Parse_JSON_GET_one_Sku_warning\')?[\'consumedUnits\']}users.<br>\n<br>\nPlease extend this license.</p>'
                       Importance: 'High'
-                      MailboxAddress: EmailFrom
+                      MailboxAddress: ''
                       Subject: 'Expired license @{body(\'Parse_JSON_GET_one_Sku_warning\')?[\'skuPartNumber\']} is still in use'
-                      To: EmailTo
+                      To: ''
                     }
                     host: {
                       connection: {
