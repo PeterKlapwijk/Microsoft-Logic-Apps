@@ -14,7 +14,7 @@
 1. Click Create
 1. Search for Logic Apps
 1. Open the Logic App
-1. Browse to Api connections, Edit connection
+1. Browse to Api connections, Edit connections (twice)
 1. Click Authorize
 1. Sign in
 1. Click Save
