@@ -58,7 +58,7 @@ resource workflows_Monitor_main_name_resource 'Microsoft.Logic/workflows@2019-05
                     }
                     host: {
                       connection: {
-                        name: '@parameters(\'$connections\')[${connections_office365_name}[\'connectionId\']'
+                        name: '@parameters(\'$connections\')[${connections_office365_name}][\'connectionId\']'
 
 
                       }
@@ -450,7 +450,7 @@ resource workflows_Monitor_main_name_resource 'Microsoft.Logic/workflows@2019-05
     parameters: {
       '$connections': {
         value: {
-          office365_1: {
+          office365: {
             connectionId: resourceId('Microsoft.Web/connections', connections_office365_name)
             connectionName: 'office365'
             id: '${subscription().id}/providers/Microsoft.Web/locations/${resourceLocation}/managedApis/office365'
