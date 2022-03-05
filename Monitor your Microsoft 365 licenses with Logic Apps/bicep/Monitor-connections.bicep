@@ -1,13 +1,13 @@
 param connections_office365_name string = 'office365'
 param resourceLocation string = resourceGroup().location
 param ResourceGroupName string
-param EmailFrom string
+
 
 resource connections_office365_name_resource 'Microsoft.Web/connections@2016-06-01' = {
   name: connections_office365_name
   location: resourceLocation
   properties: {
-    displayName: EmailFrom
+    displayName: 'Office 365'
     statuses: [
       {
         status: 'Connected'
