@@ -50,7 +50,7 @@ $DeployTimestamp = (Get-Date).ToUniversalTime().ToString("yyyyMMdTHmZ")
 az deployment group create `
     --name "DeployLinkedTemplate-$DeployTimestamp" `
     --resource-group $ResourceGroupName `
-    --template-file ../bicep/monitor-root.bicep `
+    --template-file ../bicep/Monitor-root.bicep `
     --verbose
 
 if (!$?) { 
