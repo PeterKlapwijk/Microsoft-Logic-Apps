@@ -8,7 +8,14 @@ param (
     $SubscriptionId = "",
     [Parameter(Mandatory = $true)]
     [string]
-    $ResourceGroupName
+    $ResourceGroupName,
+    [Parameter(Mandatory = $true)]
+    [string]
+    $EmailFrom,
+    [Parameter(Mandatory = $true)]
+    [string]
+    $EmailTo
+
 )
 
 if ($SubscriptionId -ne "") {
@@ -90,4 +97,4 @@ foreach ($appRoleId in $appRoleIds) {
             --headers Content-Type=application/json 
     }
 }
-Write-Host "🚀 Deployment completed"
+Write-Host "🚀 -Deployment completed"

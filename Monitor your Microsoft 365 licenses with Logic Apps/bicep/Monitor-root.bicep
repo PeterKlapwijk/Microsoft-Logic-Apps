@@ -2,6 +2,8 @@ param connections_office365_name string = 'office365'
 param workflows_Monitor_main_name string = 'M365LicenseMonitoring'
 param userAssignedIdentities_Monitor_Identity_name string = 'Monitor-ManagedIdentity'
 param resourceLocation string = resourceGroup().location
+param EmailFrom string
+param EmailTo string
 
 module managedIdentityDeployment 'Monitor-ManagedIdentity.bicep' = {
   name: 'managedIdentityDeployment'
