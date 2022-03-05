@@ -1,6 +1,7 @@
 param connections_office365_name string = 'office365'
 param workflows_Monitor_main_name string = 'Monitor-LogicApp'
 param userAssignedIdentities_Monitor_Identity_name string = 'Monitor-ManagedIdentity'
+param resourceGroupName string
 param resourceLocation string = resourceGroup().location
 param EmailFrom string
 param EmailTo string
@@ -18,6 +19,7 @@ module connectionsDeployment 'Monitor-connections.bicep' = {
   params: {
     connections_office365_name: connections_office365_name
     resourceLocation: resourceLocation
+    ResourceGroupName: resourceGroupName
     EmailFrom:EmailFrom
   }
 }
