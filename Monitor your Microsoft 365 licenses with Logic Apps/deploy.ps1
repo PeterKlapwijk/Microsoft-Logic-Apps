@@ -61,7 +61,7 @@ if (!$?) {
 Write-Host "Azure Logic App deployed, granting permissions to Managed Identity"
 
 # get the Managed Identity principal ID
-$ManagedIdentity = az identity show --name Monitor-Identity --resource-group $ResourceGroupName | ConvertFrom-Json
+$ManagedIdentity = az identity show --name Monitor-ManagedIdentity --resource-group $ResourceGroupName | ConvertFrom-Json
 
 $principalId = $ManagedIdentity.principalId
 # Get current role assignments
