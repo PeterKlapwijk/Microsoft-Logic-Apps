@@ -36,7 +36,7 @@ Write-Host "Validating deployment location"
 $ValidateLocation = az account list-locations --query "[?name=='$Location']" | ConvertFrom-Json
 if ($ValidateLocation.Count -eq 0) {
     Write-Error "The location provided is not valid, the available locations for your account are:"
-    az account list-locations --query [].name
+    az account list-locations --query [].name -o table
     exit 1
 }
 

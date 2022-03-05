@@ -5,6 +5,7 @@ param userAssignedIdentities_Monitor_Identity_name string = 'Monitor-ManagedIden
 param EmailFrom string
 param EmailTo string
 
+
 resource workflows_Monitor_main_name_resource 'Microsoft.Logic/workflows@2019-05-01' = {
   name: workflows_Monitor_main_name
   location: resourceLocation
