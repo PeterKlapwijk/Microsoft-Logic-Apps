@@ -27,7 +27,7 @@ resource connections_office365_name_resource 'Microsoft.Web/connections@2016-06-
     }
     testLinks: [
       {
-        requestUri: 'https://management.azure.com:443/${subscription().id}/resourceGroups/MonitorRG/providers/Microsoft.Web/connections/${connections_office365_name}/extensions/proxy/testconnection?api-version=2016-06-01'
+        requestUri: '${subscription().id}/resourceGroups/MonitorRG/providers/Microsoft.Web/connections/${connections_office365_name}/extensions/proxy/testconnection?api-version=2016-06-01'
         method: 'get'
       }
     ]

@@ -90,3 +90,4 @@ foreach ($appRoleId in $appRoleIds) {
             --headers Content-Type=application/json 
     }
 }
+Write-Host "🚀 Deployment completed"
