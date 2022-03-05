@@ -18,6 +18,7 @@ module connectionsDeployment 'Monitor-connections.bicep' = {
   params: {
     connections_office365_name: connections_office365_name
     resourceLocation: resourceLocation
+    EmailFrom:EmailFrom
   }
 }
 
@@ -28,6 +29,8 @@ module MainDeployment 'Monitor-main.bicep' = {
     userAssignedIdentities_Monitor_Identity_name: userAssignedIdentities_Monitor_Identity_name
     workflows_Monitor_main_name: workflows_Monitor_main_name
     connections_office365_name: connections_office365_name
+    EmailFrom:EmailFrom
+    EmailTo: EmailTo
 
   }
   dependsOn: [
