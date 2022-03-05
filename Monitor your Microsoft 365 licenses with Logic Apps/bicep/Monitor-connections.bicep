@@ -1,5 +1,5 @@
 param connections_office365_name string = 'office365'
-param resourceLocation string = resourceGroup().location
+param resourceLocation string 
 param ResourceGroupName string
 
 
