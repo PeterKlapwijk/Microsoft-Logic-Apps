@@ -5,10 +5,7 @@ param (
     $Location,
     [Parameter(Mandatory = $false)]
     [string]
-    $SubscriptionId = "",
-    [Parameter(Mandatory = $true)]
-    [string]
-    $ResourceGroupName
+    $SubscriptionId = ""
 
 )
 
