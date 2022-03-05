@@ -1,5 +1,5 @@
 param connections_office365_name string = 'office365'
-param workflows_Monitor_main_name string = 'M365LicenseMonitoring'
+param workflows_Monitor_main_name string = 'Monitor-LogicApp'
 param userAssignedIdentities_Monitor_Identity_name string = 'Monitor-ManagedIdentity'
 param resourceLocation string = resourceGroup().location
 param EmailFrom string
@@ -35,7 +35,7 @@ module MainDeployment 'Monitor-main.bicep' = {
   }
   dependsOn: [
     connectionsDeployment
-    managedIdentityDeployment
+    managedIdentityDeployment                                                       
   ]
 }
 
