@@ -9,7 +9,7 @@ resource workflows_ReceiveWindowsAutopilotdeploymenteventsinTeams_name_resource 
   identity: {
     type: 'UserAssigned'
     userAssignedIdentities: {
-      '/subscriptions/fdf0235b-0756-409c-bc69-23d183fbff17/resourceGroups/WADeployment/providers/Microsoft.ManagedIdentity/userAssignedIdentities/WAD-Identity': {}
+      '${resourceId('Microsoft.ManagedIdentity/userAssignedIdentities/',userAssignedIdentities_WAD_Identity_name)}': {}
     }
   }
   properties: {
