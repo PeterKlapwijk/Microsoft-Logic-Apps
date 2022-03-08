@@ -11,7 +11,7 @@ param (
     $ResourceGroupName
 
 )
-
+# Check subscription
 if ($SubscriptionId -ne "") {
     az account set -s $SubscriptionId
     if (!$?) { 
