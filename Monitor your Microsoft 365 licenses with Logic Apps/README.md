@@ -75,3 +75,4 @@ Now let's make the connection work:
 6. Select **Save**
 7. Change the Email Addresses in the Logic App to meet your needs.
 
+You can read more about this approach on Luise's blog: [Get rid of Key Vault! Making good things even better](https://www.m365princess.com/blogs/rid-key-vault-making-good/)
