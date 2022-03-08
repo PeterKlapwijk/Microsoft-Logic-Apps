@@ -51,7 +51,7 @@ $DeployTimestamp = (Get-Date).ToUniversalTime().ToString("yyyyMMdTHmZ")
 az deployment group create `
     --name "DeployLinkedTemplate-$DeployTimestamp" `
     --resource-group $ResourceGroupName `
-    --template-file ../"Monitor your Microsoft 365 licenses with Logic Apps"/bicep/Monitor-root.bicep `
+    --template-file ../"Monitor your Microsoft 365 licenses with Logic Apps"/bicep/WAD-root.bicep `
     --verbose
 
 if (!$?) { 
