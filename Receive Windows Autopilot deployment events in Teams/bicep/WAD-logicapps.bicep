@@ -57,7 +57,7 @@ resource workflows_ReceiveWindowsAutopilotdeploymenteventsinTeams_name_resource 
                           'Content-Type': 'application/json'
                         }
                         method: 'POST'
-                        uri: 'https://hscluise.webhook.office.com/webhookb2/df74f3f1-e5de-4aa7-9598-0e7c18d28275@b469e370-d6a6-45b5-928e-856ae0307a6d/IncomingWebhook/94584c61b63b4181bf7a51de28bb2800/2607b77e-22c4-4081-b278-a9516da4accd'
+                        uri: ''
                       }
                     }
                   }
