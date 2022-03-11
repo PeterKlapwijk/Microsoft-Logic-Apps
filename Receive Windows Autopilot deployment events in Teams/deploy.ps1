@@ -76,8 +76,9 @@ $graphResourceId = az ad sp list --display-name "Microsoft Graph" --query [0].ob
 #Get appRoleIds for Organization.Read.All
 $graphId = az ad sp list --query "[?appDisplayName=='Microsoft Graph'].appId | [0]" --all
 $DeviceManagementManagedDevicesReadAll = az ad sp show --id $graphId --query "appRoles[?value=='DeviceManagementManagedDevices.Read.All'].id | [0]" -o tsv
+$DeviceManagementServiceConfigReadAll = az ad sp show --id $graphId --query "appRoles[?value=='DeviceManagementServiceConfig.Read.All'].id | [0]" -o tsv
  
-$appRoleIds = $DeviceManagementManagedDevicesReadAll
+$appRoleIds = $DeviceManagementManagedDevicesReadAll, $DeviceManagementServiceConfigReadAll
 #Loop over all appRoleIds
 foreach ($appRoleId in $appRoleIds) {
     $roleMatch = $currentRoles -match $appRoleId
