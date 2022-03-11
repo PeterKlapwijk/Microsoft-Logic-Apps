@@ -62,6 +62,13 @@ You can automatically deploy this version like this [How to automatically deploy
         * the Logic App
         * the user-assigned Managed Identity
 
-Lastly, the `DeviceManagementManagedDevices.Read.All` permission of Microsoft Graph API will be assigned to the Managed Identity
+Lastly, the `DeviceManagementManagedDevices.Read.All` and `DeviceManagementServiceConfig.Read.All` permissions of Microsoft Graph API will be assigned to the Managed Identity
+
+Now let's make the connection work:
+
+1. Log into the [Azure portal](https://portal.azure.com)
+2. Select the resource group that you created by running the script
+3. Navigate to the Logic App
+7. Add the webhook URI in the Logic App to meet your needs.
 
 You can read more about this approach on Luise's blog: [Get rid of Key Vault! Making good things even better](https://www.m365princess.com/blogs/rid-key-vault-making-good/)
