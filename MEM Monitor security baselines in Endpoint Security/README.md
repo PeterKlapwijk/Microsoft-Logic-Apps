@@ -31,4 +31,4 @@ Now let's make the flow work:
 
 *It takes a few minutes before the Graph permissions are active*
 
-For more informations and the **requirements** for this Logic Apps flow read the related [Blog Post](https://www.inthecloud247.com/intune-rbac-create-country-based-device-groups-with-logic-apps/)
+For more informations and the **requirements** for this Logic Apps flow read the related [Blog Post](https://www.inthecloud247.com/mem-monitoring-monitor-security-baselines-in-endpoint-security/)
