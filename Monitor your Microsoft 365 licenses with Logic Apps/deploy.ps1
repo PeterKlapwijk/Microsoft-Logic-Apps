@@ -51,7 +51,7 @@ $DeployTimestamp = (Get-Date).ToUniversalTime().ToString("yyyyMMdTHmZ")
 az deployment group create `
     --name "DeployLinkedTemplate-$DeployTimestamp" `
     --resource-group $ResourceGroupName `
-    --template-file ../"Monitor your Microsoft 365 licenses with Logic Apps"/bicep/Monitor-root.bicep `
+    --template-file ../"Monitor your Microsoft 365 licenses with Logic Apps"/bicep/MonitorLicense-root.bicep `
     --verbose
 
 if (!$?) { 
@@ -62,7 +62,7 @@ if (!$?) {
 Write-Host "Azure Logic App deployed, granting permissions to Managed Identity"
 
 # get the Managed Identity principal ID
-$ManagedIdentity = az identity show --name Monitor-ManagedIdentity --resource-group $ResourceGroupName | ConvertFrom-Json
+$ManagedIdentity = az identity show --name MonitorLicense-ManagedIdentity --resource-group $ResourceGroupName | ConvertFrom-Json
 
 $principalId = $ManagedIdentity.principalId
 # Get current role assignments
@@ -106,4 +106,4 @@ foreach ($appRoleId in $appRoleIds) {
             --headers Content-Type=application/json 
     }
 }
-Write-Host "🚀 -Deployment completed"
+Write-Host "Deployment completed"
