@@ -40,10 +40,10 @@ $ResourceGroup = az group create `
     --location $Location
 
 $me = az ad signed-in-user show | ConvertFrom-Json
-$roleAssignments = az role assignment list --all --assignee $me.objectId --query "[?resourceGroup=='$ResourceGroupName' && roleDefinitionName=='Contributor'].roleDefinitionName" | ConvertFrom-Json
+$roleAssignments = az role assignment list --all --assignee $me.id --query "[?resourceGroup=='$ResourceGroupName' && roleDefinitionName=='Contributor'].roleDefinitionName" | ConvertFrom-Json
 if ($roleAssignments.Count -eq 0) {
     Write-Host "Current user does not have contributor permissions to $ResourceGroupName resource group, attempting to assign contributor permissions"
-    az role assignment create --assignee $me.objectId --role contributor --resource-group $ResourceGroupName
+    az role assignment create --assignee $me.id --role contributor --resource-group $ResourceGroupName
 }
 
 $DeployTimestamp = (Get-Date).ToUniversalTime().ToString("yyyyMMdTHmZ")
@@ -72,9 +72,24 @@ $currentRoles = (az rest `
     | ConvertFrom-Json).value `
     | ForEach-Object { $_.appRoleId }
 
-$graphResourceId = az ad sp list --display-name "Microsoft Graph" --query [0].objectId
-#Get appRoleIds for Organization.Read.All
-$graphId = az ad sp list --query "[?appDisplayName=='Microsoft Graph'].appId | [0]" --all
+# Get Microsoft Graph ObjectId
+$graphId = "00000003-0000-0000-c000-000000000000"
+
+$graphversion = "v1.0"
+$url = "https://graph.microsoft.com"
+$endpoint = "servicePrincipals?`$filter="
+$filter = "appId eq '$graphId'"
+
+$uri = "$url/$graphversion/$endpoint$filter"
+
+$graphResource = (az rest `
+    --method get `
+    --uri $uri `
+   | ConvertFrom-Json).value
+
+$graphResourceId = $graphResource.Id
+
+#Get appRoleIds
 $DeviceManagementManagedDevicesReadAll = az ad sp show --id $graphId --query "appRoles[?value=='DeviceManagementManagedDevices.Read.All'].id | [0]" -o tsv
 $DeviceManagementServiceConfigReadAll = az ad sp show --id $graphId --query "appRoles[?value=='DeviceManagementServiceConfig.Read.All'].id | [0]" -o tsv
  
@@ -92,4 +107,4 @@ foreach ($appRoleId in $appRoleIds) {
             --headers Content-Type=application/json 
     }
 }
-Write-Host "🚀 -Deployment completed"
+Write-Host "Deployment completed"
