@@ -3,7 +3,7 @@
 
 ## Instructions for automatically deploying the logic Apps flow ##
 
-*The script can be run from your local machine, by first cloning (downloading) the repository to your local machine. Or you can run the script using Azure cloud shell.
+*The deployment script can be run from your local machine, by first cloning (downloading) the repository to your local machine. Or you can run the script using Azure cloud shell.
 The script uses Azure CLI, if you run the script from your local machine install [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli) first*
 
 1. Clone the repository to [Azure cloud shell](https://shell.azure.com) or to your local machine
