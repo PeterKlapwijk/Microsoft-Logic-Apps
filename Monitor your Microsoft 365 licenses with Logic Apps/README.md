@@ -10,8 +10,6 @@ The original solution provided by [Peter Klapwijk](https://twitter.com/intheclou
 * a KeyVault (to store the secret)
 * a connection reference to Office 365 for Outlook
 
-You can manually deploy this first version like this: [How to manually deploy first version](README.md#instructions-for-manually-deploying-the-first-version)
-
 ## Instructions for manually deploying the first version
 
 1. Download the azuredeploy.json file
