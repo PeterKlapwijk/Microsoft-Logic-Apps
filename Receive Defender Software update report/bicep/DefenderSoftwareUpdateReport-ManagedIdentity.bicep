@@ -1,0 +1,7 @@
+param userAssignedIdentities_DefenderforEndpoint_ManagedIdentity_name string = 'DefenderforEndpointReporting-ManagedIdentity'
+param resourceLocation string 
+
+resource userAssignedIdentities_DefenderforEndpoint_ManagedIdentity_name_resource 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30' = {
+  name: userAssignedIdentities_DefenderforEndpoint_ManagedIdentity_name
+  location: resourceLocation
+}
