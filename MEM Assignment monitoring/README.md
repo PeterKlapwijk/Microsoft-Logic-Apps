@@ -35,4 +35,4 @@ Now let's make the flow work:
 
 *It takes a while before the Graph permissions are active, the first run of the flow might fail*
 
-For more informations and the **requirements** for this Logic Apps flow read the related [Blog Post](https://www.inthecloud247.com/)
+For more informations and the **requirements** for this Logic Apps flow read the related [Blog Post](https://www.inthecloud247.com/mem-monitoring-assignment-monitoring-to-keep-your-tenant-cleaned-up/)
