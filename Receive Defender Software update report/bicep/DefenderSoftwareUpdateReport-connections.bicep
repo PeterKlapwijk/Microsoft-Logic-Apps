@@ -23,7 +23,7 @@ resource connections_office365_name_resource 'Microsoft.Web/connections@2016-06-
       description: 'Microsoft Office 365 is a cloud-based service that is designed to help meet your organization\'s needs for robust security, reliability, and user productivity.'
       iconUri: 'https://connectoricons-prod.azureedge.net/releases/v1.0.1538/1.0.1538.2621/${connections_office365_name}/icon.png'
       brandColor: '#0078D4'
-      id: '${subscription().id}/providers/Microsoft.Web/locations/westeurope/managedApis/${connections_office365_name}'
+      id: '${subscription().id}/providers/Microsoft.Web/locations/${resourceLocation}/managedApis/${connections_office365_name}'
       type: 'Microsoft.Web/locations/managedApis'
     }
     testLinks: [
