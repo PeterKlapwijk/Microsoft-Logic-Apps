@@ -1,5 +1,7 @@
 ![This is an image](https://www.inthecloud247.com/wp-content/uploads/2022/01/Azure-Logic-Apps-GitHub01.png)
 
+This Logic Apps flow automatically approves the recommend Windows Drivers in your Intune Windows Driver Update ring on Patch Tuesday (the second Tuesday of the month)
+
 ## Instructions for automatically deploying the logic Apps flow ##
 
 *The deployment script can be run from your local machine, by first cloning (downloading) the repository to your local machine. Or you can run the script using Azure cloud shell.
@@ -31,4 +33,4 @@ Now let's make the flow work:
 
 *It takes a while before the Graph permissions are active, the first run of the flow might fail*
 
-For more informations and the **requirements** for this Logic Apps flow read the related [Blog Post](https://www.inthecloud247.com/)
+For more informations and the **requirements** for this Logic Apps flow read the related [Blog Post](https://www.inthecloud247.com/automatically-deploy-windows-drivers-on-patch-tuesday/)
