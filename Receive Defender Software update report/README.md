@@ -7,7 +7,7 @@
 The script uses Azure CLI, if you run the script from your local machine install [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli) first*
 
 1. Clone the repository to [Azure cloud shell](https://shell.azure.com) or to your local machine
-2. Navigate to the `MEM Assignment monitoring` folder
+2. Navigate to the `Receive Defender Software update report` folder
 3. Run `.\deploy.ps1` - this script
     * will ask you to provide
         * the name of the Resource group
