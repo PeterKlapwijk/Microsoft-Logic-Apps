@@ -1,6 +1,6 @@
 ![This is an image](https://www.inthecloud247.com/wp-content/uploads/2022/01/Azure-Logic-Apps-GitHub01.png)
 
-For more informations and the **requirements** for this Logic Apps flow read the related [Blog Post](https://inthecloud247.com/revoke-user-access-in-case-of-an-emergency-with-a-single-click/)
+For more information and the **requirements** for this Logic Apps flow read the related [Blog Post](https://inthecloud247.com/revoke-user-access-in-case-of-an-emergency-with-a-single-click/)
 
 **Instructions for deploying one of the ARM templates in Azure**
 
