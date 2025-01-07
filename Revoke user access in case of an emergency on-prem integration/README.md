@@ -1,6 +1,6 @@
 ![This is an image](https://www.inthecloud247.com/wp-content/uploads/2022/01/Azure-Logic-Apps-GitHub01.png)
 
-For more informations and the **requirements** for this Logic Apps flow read the related [Blog Post](https://inthecloud247.com/revoke-user-access-in-case-of-an-emergency-with-a-single-click-on-premises-ad-integration/)
+For more information and the **requirements** for this Logic Apps flow read the related [Blog Post](https://inthecloud247.com/revoke-user-access-in-case-of-an-emergency-with-a-single-click-on-premises-ad-integration/)
 
 **Instructions for deploying one of the ARM templates in Azure**
 
@@ -24,3 +24,4 @@ For more informations and the **requirements** for this Logic Apps flow read the
 1. Assign the required Application permissions and Entra ID role (for example by using the attached scripts)
 
 *The flow is ready to run, but keep in mind it could take some time before the permissions are active.*
+*Setup of the on-premises integration of this solution is not covered by this template. The API-driven provisioning to on-premises Active Directory Enterprise Application should be created manually.*
