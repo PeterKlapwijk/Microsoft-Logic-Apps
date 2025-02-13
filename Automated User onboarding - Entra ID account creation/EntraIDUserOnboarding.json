@@ -1,0 +1,617 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "LogicAppName": {
+           "type": "string",
+           "minLength": 1,
+           "maxLength": 80,
+           "defaultValue": "LAEntraIDUserOnboarding",
+           "metadata": {
+              "description": "The resource name for the logic app"
+           }
+        },
+        "LogicAppLocation": {
+           "type": "string",
+           "minLength": 1,
+           "defaultValue": "[resourceGroup().location]",
+           "metadata": {
+              "description": "The resource location for the logic app"
+           }
+        },
+         "connections_sharepointonline": {
+             "defaultValue": "sharepointonline",
+             "type": "string"
+         },
+         "connections_office365": {
+             "defaultValue": "office365",
+             "type": "string"
+         }
+     }, 
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Web/connections",
+            "apiVersion": "2016-06-01",
+            "location": "[resourceGroup().location]",
+            "name": "sharepointonline",
+            "properties": {
+                "api": {
+                    "id": "[concat('subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/sharepointonline')]"
+                },
+                "displayName": "sharepointonline"
+                }
+        },
+        {
+            "type": "Microsoft.Web/connections",
+            "apiVersion": "2016-06-01",
+            "location": "[resourceGroup().location]",
+            "name": "office365",
+            "properties": {
+                "api": {
+                    "id": "[concat('subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/office365')]"
+                },
+                "displayName": "office365"
+                }
+        },
+        {
+            "type": "Microsoft.Logic/workflows",
+            "apiVersion": "2017-07-01",
+            "name": "[parameters('LogicAppName')]",
+            "location": "[parameters('LogicAppLocation')]",
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {
+                "state": "Enabled",
+                "definition": {
+                    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "$connections": {
+                            "defaultValue": {},
+                            "type": "Object"
+                        }
+                    },
+                    "triggers": {
+                        "When_an_item_is_created": {
+                            "recurrence": {
+                                "interval": 3,
+                                "frequency": "Minute"
+                            },
+                            "evaluatedRecurrence": {
+                                "interval": 3,
+                                "frequency": "Minute"
+                            },
+                            "splitOn": "@triggerBody()?['value']",
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['sharepointonline']['connectionId']"
+                                    }
+                                },
+                                "method": "get",
+                                "path": "/datasets/@{encodeURIComponent(encodeURIComponent(''))}/tables/@{encodeURIComponent(encodeURIComponent(''))}/onnewitems"
+                            }
+                        }
+                    },
+                    "actions": {
+                        "Compose_mailNickname": {
+                            "runAfter": {},
+                            "type": "Compose",
+                            "inputs": "@{toLower(triggerBody()?['Firstname'])}.@{toLower(triggerBody()?['Lastname'])}"
+                        },
+                        "Initialize_variable_License": {
+                            "runAfter": {
+                                "Compose_mailNickname": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "varLicense",
+                                        "type": "string"
+                                    }
+                                ]
+                            }
+                        },
+                        "HTTP_POST_Create_User": {
+                            "runAfter": {
+                                "Initialize_variable_License": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "Http",
+                            "inputs": {
+                                "uri": "https://graph.microsoft.com/v1.0/users",
+                                "method": "POST",
+                                "body": {
+                                    "accountEnabled": false,
+                                    "displayName": "@{triggerBody()?['Fullname']}",
+                                    "givenName": "@{triggerBody()?['Firstname']}",
+                                    "surname": "@{triggerBody()?['Lastname']}",
+                                    "otherMails": [
+                                        "@{triggerBody()?['Privatemail']}"
+                                    ],
+                                    "mailNickname": "@{outputs('Compose_mailNickname')}",
+                                    "userPrincipalName": "@{outputs('Compose_mailNickname')}@domainname.com",
+                                    "employeeHireDate": "@{triggerBody()?['Hiredate']}T09:00:00Z",
+                                    "jobTitle": "@{triggerBody()?['Jobtitle']}",
+                                    "department": "@{triggerBody()?['Department']?['Value']}",
+                                    "usageLocation": "@{triggerBody()?['Country']?['Value']}",
+                                    "passwordProfile": {
+                                        "forceChangePasswordNextSignIn": false,
+                                        "password": "@{concat(toUpper(substring(guid(),0,8)),'!',substring(guid(),0,8))}"
+                                    }
+                                },
+                                "authentication": {
+                                    "type": "ManagedServiceIdentity",
+                                    "audience": "https://graph.microsoft.com"
+                                }
+                            },
+                            "runtimeConfiguration": {
+                                "contentTransfer": {
+                                    "transferMode": "Chunked"
+                                },
+                                "secureData": {
+                                    "properties": [
+                                        "inputs"
+                                    ]
+                                }
+                            }
+                        },
+                        "Parse_JSON_POST_Create_User": {
+                            "runAfter": {
+                                "HTTP_POST_Create_User": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "ParseJson",
+                            "inputs": {
+                                "content": "@body('HTTP_POST_Create_User')",
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "@@odata.context": {
+                                            "type": "string"
+                                        },
+                                        "id": {
+                                            "type": "string"
+                                        },
+                                        "businessPhones": {
+                                            "type": "array"
+                                        },
+                                        "displayName": {
+                                            "type": "string"
+                                        },
+                                        "givenName": {
+                                            "type": "string"
+                                        },
+                                        "jobTitle": {
+                                            "type": "string"
+                                        },
+                                        "mail": {},
+                                        "mobilePhone": {},
+                                        "officeLocation": {},
+                                        "preferredLanguage": {},
+                                        "surname": {
+                                            "type": "string"
+                                        },
+                                        "userPrincipalName": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "HTTP_PUT_Assign_manager": {
+                            "runAfter": {
+                                "Parse_JSON_POST_Create_User": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "Http",
+                            "inputs": {
+                                "uri": "https://graph.microsoft.com/v1.0/users/@{body('Parse_JSON_POST_Create_User')?['userPrincipalName']}/manager/$ref",
+                                "method": "PUT",
+                                "body": {
+                                    "@@odata.id": "https://graph.microsoft.com/v1.0/users/@{triggerBody()?['Manager']?['Email']}"
+                                },
+                                "authentication": {
+                                    "type": "ManagedServiceIdentity",
+                                    "audience": "https://graph.microsoft.com"
+                                }
+                            },
+                            "runtimeConfiguration": {
+                                "contentTransfer": {
+                                    "transferMode": "Chunked"
+                                }
+                            }
+                        },
+                        "Condition_laptop_or_not": {
+                            "actions": {
+                                "Send_an_email_from_a_shared_mailbox_(V2)_IT_Service_Point": {
+                                    "type": "ApiConnection",
+                                    "inputs": {
+                                        "host": {
+                                            "connection": {
+                                                "name": "@parameters('$connections')['office365']['connectionId']"
+                                            }
+                                        },
+                                        "method": "post",
+                                        "body": {
+                                            "MailboxAddress": "",
+                                            "To": "",
+                                            "Subject": "New joiner; prepare laptop for @{triggerBody()?['Fullname']}",
+                                            "Body": "<p class=\"editor-paragraph\">Hello ITSP colleagues,<br><br><br>On @{triggerBody()?['Hiredate']} @{triggerBody()?['Fullname']} will join our company.<br>Please prepare a @{triggerBody()?['Laptop']?['Value']} device for this new user before that date.</p><br><br><p class=\"editor-paragraph\">Thanks in advance.</p><p class=\"editor-paragraph\"><br>Kind regards,<br><br>The HR Team</p><br>",
+                                            "Importance": "Normal"
+                                        },
+                                        "path": "/v2/SharedMailbox/Mail"
+                                    }
+                                }
+                            },
+                            "runAfter": {
+                                "HTTP_PUT_Assign_manager": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "else": {
+                                "actions": {}
+                            },
+                            "expression": {
+                                "or": [
+                                    {
+                                        "not": {
+                                            "equals": [
+                                                "@triggerBody()?['Laptop']?['Value']",
+                                                "None"
+                                            ]
+                                        }
+                                    }
+                                ]
+                            },
+                            "type": "If"
+                        },
+                        "For_each_license": {
+                            "foreach": "@triggerBody()?['Microsoftlicenses']",
+                            "actions": {
+                                "Switch_license": {
+                                    "cases": {
+                                        "Case_Microsoft_365_Business_Premium": {
+                                            "case": "Microsoft 365 Business Premium",
+                                            "actions": {
+                                                "HTTP_Add_Group_member_M365_E3": {
+                                                    "type": "Http",
+                                                    "inputs": {
+                                                        "uri": "https://graph.microsoft.com/v1.0/groups//members/$ref",
+                                                        "method": "POST",
+                                                        "body": {
+                                                            "@@odata.id": "https://graph.microsoft.com/v1.0/directoryObjects/@{body('Parse_JSON_POST_Create_User')?['id']}"
+                                                        },
+                                                        "authentication": {
+                                                            "type": "ManagedServiceIdentity",
+                                                            "audience": "https://graph.microsoft.com"
+                                                        }
+                                                    },
+                                                    "runtimeConfiguration": {
+                                                        "contentTransfer": {
+                                                            "transferMode": "Chunked"
+                                                        }
+                                                    }
+                                                },
+                                                "Append_to_string_variable_Microsoft_365_E3": {
+                                                    "runAfter": {
+                                                        "HTTP_Add_Group_member_M365_E3": [
+                                                            "Succeeded"
+                                                        ]
+                                                    },
+                                                    "type": "AppendToStringVariable",
+                                                    "inputs": {
+                                                        "name": "varLicense",
+                                                        "value": "Microsoft 365 E3,"
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "Case_W365_Enterprise": {
+                                            "case": "Windows 365 Enterprise",
+                                            "actions": {
+                                                "HTTP_Add_Group_member_W365_Enterprise": {
+                                                    "type": "Http",
+                                                    "inputs": {
+                                                        "uri": "https://graph.microsoft.com/v1.0/groups//members/$ref",
+                                                        "method": "POST",
+                                                        "body": {
+                                                            "@@odata.id": "https://graph.microsoft.com/v1.0/directoryObjects/@{body('Parse_JSON_POST_Create_User')?['id']}"
+                                                        },
+                                                        "authentication": {
+                                                            "type": "ManagedServiceIdentity",
+                                                            "audience": "https://graph.microsoft.com"
+                                                        }
+                                                    },
+                                                    "runtimeConfiguration": {
+                                                        "contentTransfer": {
+                                                            "transferMode": "Chunked"
+                                                        }
+                                                    }
+                                                },
+                                                "Append_to_string_variable_W365_Enterprise": {
+                                                    "runAfter": {
+                                                        "HTTP_Add_Group_member_W365_Enterprise": [
+                                                            "Succeeded"
+                                                        ]
+                                                    },
+                                                    "type": "AppendToStringVariable",
+                                                    "inputs": {
+                                                        "name": "varLicense",
+                                                        "value": "W365 Enterprise,"
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "Case_W365_Frontline": {
+                                            "case": "Windows 365 Frontline",
+                                            "actions": {
+                                                "HTTP_Add_Group_member_W365_Frontline": {
+                                                    "type": "Http",
+                                                    "inputs": {
+                                                        "uri": "https://graph.microsoft.com/v1.0/groups//members/$ref",
+                                                        "method": "POST",
+                                                        "body": {
+                                                            "@@odata.id": "https://graph.microsoft.com/v1.0/directoryObjects/@{body('Parse_JSON_POST_Create_User')?['id']}"
+                                                        },
+                                                        "authentication": {
+                                                            "type": "ManagedServiceIdentity",
+                                                            "audience": "https://graph.microsoft.com"
+                                                        }
+                                                    },
+                                                    "runtimeConfiguration": {
+                                                        "contentTransfer": {
+                                                            "transferMode": "Chunked"
+                                                        }
+                                                    }
+                                                },
+                                                "Append_to_string_variable_W365_Frontline": {
+                                                    "runAfter": {
+                                                        "HTTP_Add_Group_member_W365_Frontline": [
+                                                            "Succeeded"
+                                                        ]
+                                                    },
+                                                    "type": "AppendToStringVariable",
+                                                    "inputs": {
+                                                        "name": "varLicense",
+                                                        "value": "W365 Frontline,"
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "Case_Microsoft_Viso_P1": {
+                                            "case": "Microsoft Viso P1",
+                                            "actions": {
+                                                "HTTP_Add_Group_member_Viso_P1": {
+                                                    "type": "Http",
+                                                    "inputs": {
+                                                        "uri": "https://graph.microsoft.com/v1.0/groups//members/$ref",
+                                                        "method": "POST",
+                                                        "body": {
+                                                            "@@odata.id": "https://graph.microsoft.com/v1.0/directoryObjects/@{body('Parse_JSON_POST_Create_User')?['id']}"
+                                                        },
+                                                        "authentication": {
+                                                            "type": "ManagedServiceIdentity",
+                                                            "audience": "https://graph.microsoft.com"
+                                                        }
+                                                    },
+                                                    "runtimeConfiguration": {
+                                                        "contentTransfer": {
+                                                            "transferMode": "Chunked"
+                                                        }
+                                                    }
+                                                },
+                                                "Append_to_string_variable_Viso_P1": {
+                                                    "runAfter": {
+                                                        "HTTP_Add_Group_member_Viso_P1": [
+                                                            "Succeeded"
+                                                        ]
+                                                    },
+                                                    "type": "AppendToStringVariable",
+                                                    "inputs": {
+                                                        "name": "varLicense",
+                                                        "value": "Viso P1,"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "default": {
+                                        "actions": {}
+                                    },
+                                    "expression": "@items('For_each_license')?['Value']",
+                                    "type": "Switch"
+                                }
+                            },
+                            "runAfter": {
+                                "Condition_laptop_or_not": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "Foreach"
+                        },
+                        "Compose_Licenses": {
+                            "runAfter": {
+                                "For_each_license": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "Compose",
+                            "inputs": "@variables('varLicense')"
+                        },
+                        "Get_items_Department_List": {
+                            "runAfter": {
+                                "Compose_Licenses": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['sharepointonline']['connectionId']"
+                                    }
+                                },
+                                "method": "get",
+                                "path": "/datasets/@{encodeURIComponent(encodeURIComponent(''))}/tables/@{encodeURIComponent(encodeURIComponent(''))}/items",
+                                "queries": {
+                                    "$filter": "Department eq '@{triggerBody()?['Department']?['Value']}'"
+                                }
+                            }
+                        },
+                        "For_each_department": {
+                            "foreach": "@body('Get_items_Department_List')?['value']",
+                            "actions": {
+                                "HTTP_POST_Add_group_member_department": {
+                                    "type": "Http",
+                                    "inputs": {
+                                        "uri": "https://graph.microsoft.com/v1.0/groups/@{item()?['DepartmentGroupObjectID']}/members/$ref",
+                                        "method": "POST",
+                                        "body": {
+                                            "@@odata.id": "https://graph.microsoft.com/v1.0/directoryObjects/@{body('Parse_JSON_POST_Create_User')?['id']}"
+                                        },
+                                        "authentication": {
+                                            "type": "ManagedServiceIdentity",
+                                            "audience": "https://graph.microsoft.com"
+                                        }
+                                    },
+                                    "runtimeConfiguration": {
+                                        "contentTransfer": {
+                                            "transferMode": "Chunked"
+                                        }
+                                    }
+                                }
+                            },
+                            "runAfter": {
+                                "Get_items_Department_List": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "Foreach"
+                        },
+                        "Send_an_email_from_a_shared_mailbox_(V2)_HR": {
+                            "runAfter": {
+                                "For_each_department": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['office365']['connectionId']"
+                                    }
+                                },
+                                "method": "post",
+                                "body": {
+                                    "MailboxAddress": "",
+                                    "To": "",
+                                    "Subject": "Account creation for new user @{triggerBody()?['Fullname']} succeeded",
+                                    "Body": "<p class=\"editor-paragraph\">Hello colleague,<br><br>Account creation succeeded for our new colleague @{triggerBody()?['Fullname']}.</p><br><p class=\"editor-paragraph\">Kind regards,<br><br>Your IT Heroes</p>",
+                                    "Importance": "Normal"
+                                },
+                                "path": "/v2/SharedMailbox/Mail"
+                            }
+                        },
+                        "Send_an_email_from_a_shared_mailbox_(V2)_Manager": {
+                            "runAfter": {
+                                "For_each_department": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['office365']['connectionId']"
+                                    }
+                                },
+                                "method": "post",
+                                "body": {
+                                    "MailboxAddress": "",
+                                    "To": "@triggerBody()?['Manager']?['Email']",
+                                    "Subject": "Account creation for new user @{triggerBody()?['Fullname']} succeeded",
+                                    "Body": "<p class=\"editor-paragraph\">Hello @{triggerBody()?['Manager']?['DisplayName']},</p><br><p class=\"editor-paragraph\">The HR department initiated the creation of an account for our new colleague @{triggerBody()?['Fullname']}.</p><br><p class=\"editor-paragraph\">The start date of @{triggerBody()?['Firstname']} is @{triggerBody()?['Hiredate']}. Please make sure to welcome our new colleague on that date.</p><p class=\"editor-paragraph\">On the start date you will receive the Temporary Access Pass that allows our new colleague to set up his/ her account.</p><br><p class=\"editor-paragraph\">We requested the following laptop;</p><p class=\"editor-paragraph\">@{triggerBody()?['Laptop']?['Value']}</p><br><p class=\"editor-paragraph\">The user will be assigned the following license(s);</p><p class=\"editor-paragraph\">@{outputs('Compose_Licenses')}</p><br><p class=\"editor-paragraph\">Kind regards,<br><br>Your IT Heroes</p>",
+                                    "Importance": "Normal"
+                                },
+                                "path": "/v2/SharedMailbox/Mail"
+                            }
+                        },
+                        "Send_an_email_from_a_shared_mailbox_(V2)_FAILED": {
+                            "runAfter": {
+                                "Send_an_email_from_a_shared_mailbox_(V2)_HR": [
+                                    "Failed",
+                                    "Skipped",
+                                    "TimedOut"
+                                ],
+                                "Send_an_email_from_a_shared_mailbox_(V2)_Manager": [
+                                    "Failed",
+                                    "Skipped",
+                                    "TimedOut"
+                                ]
+                            },
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['office365']['connectionId']"
+                                    }
+                                },
+                                "method": "post",
+                                "body": {
+                                    "MailboxAddress": "",
+                                    "To": "",
+                                    "Subject": "The User onboarding flow failed for user @{triggerBody()?['Fullname']}",
+                                    "Body": "<p class=\"editor-paragraph\">Hello IT Hero,<br><br><br>The user onboarding flow failed for user @{triggerBody()?['Fullname']}.</p><br><p class=\"editor-paragraph\">Please check this as soon as possible.<br><br>Regards,<br>Your automation</p>",
+                                    "Importance": "Normal"
+                                },
+                                "path": "/v2/SharedMailbox/Mail"
+                            }
+                        },
+                        "Terminate": {
+                            "runAfter": {
+                                "Send_an_email_from_a_shared_mailbox_(V2)_FAILED": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "Terminate",
+                            "inputs": {
+                                "runStatus": "Failed",
+                                "runError": {
+                                    "code": "404",
+                                    "message": "Unknown error"
+                                }
+                            }
+                        }
+                    },
+                    "outputs": {}
+                },
+                "parameters": {
+                    "$connections": {
+                        "value": {
+                            "sharepointonline": {
+                                "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', parameters('LogicAppLocation'), '/managedApis/', 'sharepointonline')]",
+                                "connectionId": "[resourceId('Microsoft.Web/connections', parameters('connections_sharepointonline'))]",
+                                "connectionName": "[parameters('connections_sharepointonline')]"
+                            },
+                            "office365": {
+                                "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', parameters('LogicAppLocation'), '/managedApis/', 'office365')]",
+                                "connectionId": "[resourceId('Microsoft.Web/connections', parameters('connections_office365'))]",
+                                "connectionName": "[parameters('connections_office365')]"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ]
+}
