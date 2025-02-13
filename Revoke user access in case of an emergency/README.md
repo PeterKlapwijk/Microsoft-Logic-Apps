@@ -8,7 +8,7 @@ For more information and the **requirements** for this Logic Apps flow read the 
 1. Sign in to https://portal.azure.com
 1. Search for Deploy a custom template
 1. Click build your own template in the editor
-1. Click Load file and select azuredeploy.
+1. Click Load file and select the JSON file.
 1. Click Save
 1. Select a Resource group and finish the deployment wizard
 1. Open the Logic App
