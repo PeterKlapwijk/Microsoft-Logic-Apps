@@ -1,0 +1,437 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "LogicAppName": {
+           "type": "string",
+           "minLength": 1,
+           "maxLength": 80,
+           "defaultValue": "LAEntraIDUserOnboardingDay1",
+           "metadata": {
+              "description": "The resource name for the logic app"
+           }
+        },
+        "LogicAppLocation": {
+           "type": "string",
+           "minLength": 1,
+           "defaultValue": "[resourceGroup().location]",
+           "metadata": {
+              "description": "The resource location for the logic app"
+           }
+        },
+         "connections_office365": {
+             "defaultValue": "office365",
+             "type": "string"
+         }
+     },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Web/connections",
+            "apiVersion": "2016-06-01",
+            "location": "[resourceGroup().location]",
+            "name": "office365",
+            "properties": {
+                "api": {
+                    "id": "[concat('subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/office365')]"
+                },
+                "displayName": "office365"
+                }
+        },
+        {
+            "type": "Microsoft.Logic/workflows",
+            "apiVersion": "2017-07-01",
+            "name": "[parameters('LogicAppName')]",
+            "location": "[parameters('LogicAppLocation')]",
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {
+                "state": "Disabled",
+                "definition": {
+                    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "$connections": {
+                            "defaultValue": {},
+                            "type": "Object"
+                        }
+                    },
+                    "triggers": {
+                        "Recurrence": {
+                            "recurrence": {
+                                "interval": 1,
+                                "frequency": "Day",
+                                "timeZone": "W. Europe Standard Time",
+                                "schedule": {
+                                    "hours": [
+                                        "6"
+                                    ]
+                                }
+                            },
+                            "evaluatedRecurrence": {
+                                "interval": 1,
+                                "frequency": "Day",
+                                "timeZone": "W. Europe Standard Time",
+                                "schedule": {
+                                    "hours": [
+                                        "6"
+                                    ]
+                                }
+                            },
+                            "type": "Recurrence"
+                        }
+                    },
+                    "actions": {
+                        "HTTP_Get_disabled_users": {
+                            "runAfter": {},
+                            "type": "Http",
+                            "inputs": {
+                                "uri": "https://graph.microsoft.com/v1.0/users?$select=id,displayName,givenName,surname,userPrincipalName,mail,otherMails,accountEnabled,createdDateTime,employeeHireDate&$filter=employeeHireDate%20le%20@{formatDateTime(addDays(utcNow(),1),'yyyy-MM-dd')}T00:00:00Z%20and%20createdDateTime%20ge%20@{formatDateTime(addDays(utcNow(),-7),'yyyy-MM-dd')}T00:00:00Z%20and%20accountEnabled%20eq%20false&$count=true",
+                                "method": "GET",
+                                "headers": {
+                                    "ConsistencyLevel": "eventual"
+                                },
+                                "authentication": {
+                                    "type": "ManagedServiceIdentity",
+                                    "audience": "https://graph.microsoft.com"
+                                }
+                            },
+                            "runtimeConfiguration": {
+                                "contentTransfer": {
+                                    "transferMode": "Chunked"
+                                }
+                            }
+                        },
+                        "Parse_JSON_Get_disabled_users": {
+                            "runAfter": {
+                                "HTTP_Get_disabled_users": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "ParseJson",
+                            "inputs": {
+                                "content": "@body('HTTP_Get_disabled_users')",
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "@@odata.context": {
+                                            "type": "string"
+                                        },
+                                        "@@odata.count": {
+                                            "type": "integer"
+                                        },
+                                        "value": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "string"
+                                                    },
+                                                    "displayName": {
+                                                        "type": "string"
+                                                    },
+                                                    "givenName": {
+                                                        "type": "string"
+                                                    },
+                                                    "surname": {
+                                                        "type": "string"
+                                                    },
+                                                    "userPrincipalName": {
+                                                        "type": "string"
+                                                    },
+                                                    "mail": {
+                                                        "type": "string"
+                                                    },
+                                                    "otherMails": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "accountEnabled": {
+                                                        "type": "boolean"
+                                                    },
+                                                    "createdDateTime": {
+                                                        "type": "string"
+                                                    },
+                                                    "employeeHireDate": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "required": [
+                                                    "id",
+                                                    "displayName",
+                                                    "givenName",
+                                                    "surname",
+                                                    "userPrincipalName",
+                                                    "mail",
+                                                    "otherMails",
+                                                    "accountEnabled",
+                                                    "createdDateTime",
+                                                    "employeeHireDate"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "For_each_disabled_user_account": {
+                            "foreach": "@outputs('Parse_JSON_Get_disabled_users')?['body']?['value']",
+                            "actions": {
+                                "Condition_employeeHireDate_starts_with_today": {
+                                    "actions": {
+                                        "HTTP_PATCH_Enable_account": {
+                                            "type": "Http",
+                                            "inputs": {
+                                                "uri": "https://graph.microsoft.com/v1.0/users/@{item()?['id']}",
+                                                "method": "PATCH",
+                                                "body": {
+                                                    "accountEnabled": true
+                                                },
+                                                "authentication": {
+                                                    "type": "ManagedServiceIdentity",
+                                                    "audience": "https://graph.microsoft.com"
+                                                }
+                                            },
+                                            "runtimeConfiguration": {
+                                                "contentTransfer": {
+                                                    "transferMode": "Chunked"
+                                                }
+                                            }
+                                        },
+                                        "HTTP_POST_Create_Temporary_Access_Pass": {
+                                            "runAfter": {
+                                                "HTTP_PATCH_Enable_account": [
+                                                    "Succeeded"
+                                                ]
+                                            },
+                                            "type": "Http",
+                                            "inputs": {
+                                                "uri": "https://graph.microsoft.com/v1.0/users/@{item()?['id']}/authentication/temporaryAccessPassMethods",
+                                                "method": "POST",
+                                                "headers": {
+                                                    "Content-Type": "application/json"
+                                                },
+                                                "body": {
+                                                    "startDateTime": "@{formatDateTime(utcNow(),'yyyy-MM-dd')}T09:00:00.000Z",
+                                                    "lifetimeInMinutes": 180,
+                                                    "isUsableOnce": false
+                                                },
+                                                "authentication": {
+                                                    "type": "ManagedServiceIdentity",
+                                                    "audience": "https://graph.microsoft.com"
+                                                }
+                                            },
+                                            "runtimeConfiguration": {
+                                                "contentTransfer": {
+                                                    "transferMode": "Chunked"
+                                                },
+                                                "secureData": {
+                                                    "properties": [
+                                                        "outputs"
+                                                    ]
+                                                }
+                                            }
+                                        },
+                                        "Parse_JSON_POST_Create_Temporary_Access_Pass": {
+                                            "runAfter": {
+                                                "HTTP_POST_Create_Temporary_Access_Pass": [
+                                                    "Succeeded"
+                                                ]
+                                            },
+                                            "type": "ParseJson",
+                                            "inputs": {
+                                                "content": "@body('HTTP_POST_Create_Temporary_Access_Pass')",
+                                                "schema": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "@@odata.context": {
+                                                            "type": "string"
+                                                        },
+                                                        "id": {
+                                                            "type": "string"
+                                                        },
+                                                        "isUsable": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "methodUsabilityReason": {
+                                                            "type": "string"
+                                                        },
+                                                        "temporaryAccessPass": {
+                                                            "type": "string"
+                                                        },
+                                                        "createdDateTime": {
+                                                            "type": "string"
+                                                        },
+                                                        "startDateTime": {
+                                                            "type": "string"
+                                                        },
+                                                        "lifetimeInMinutes": {
+                                                            "type": "integer"
+                                                        },
+                                                        "isUsableOnce": {
+                                                            "type": "boolean"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "HTTP_GET_Manager": {
+                                            "runAfter": {
+                                                "Parse_JSON_POST_Create_Temporary_Access_Pass": [
+                                                    "Succeeded"
+                                                ]
+                                            },
+                                            "type": "Http",
+                                            "inputs": {
+                                                "uri": "https://graph.microsoft.com/v1.0/users/@{item()?['id']}/manager?$select=id,displayName,givenName,surname,mail",
+                                                "method": "GET",
+                                                "authentication": {
+                                                    "type": "ManagedServiceIdentity",
+                                                    "audience": "https://graph.microsoft.com"
+                                                }
+                                            },
+                                            "runtimeConfiguration": {
+                                                "contentTransfer": {
+                                                    "transferMode": "Chunked"
+                                                }
+                                            }
+                                        },
+                                        "Parse_JSON_GET_Manager": {
+                                            "runAfter": {
+                                                "HTTP_GET_Manager": [
+                                                    "Succeeded"
+                                                ]
+                                            },
+                                            "type": "ParseJson",
+                                            "inputs": {
+                                                "content": "@body('HTTP_GET_Manager')",
+                                                "schema": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "@@odata.context": {
+                                                            "type": "string"
+                                                        },
+                                                        "@@odata.type": {
+                                                            "type": "string"
+                                                        },
+                                                        "id": {
+                                                            "type": "string"
+                                                        },
+                                                        "displayName": {
+                                                            "type": "string"
+                                                        },
+                                                        "givenName": {
+                                                            "type": "string"
+                                                        },
+                                                        "surname": {
+                                                            "type": "string"
+                                                        },
+                                                        "mail": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "Send_an_email_from_a_shared_mailbox_(V2)_-_manager": {
+                                            "runAfter": {
+                                                "Parse_JSON_GET_Manager": [
+                                                    "Succeeded"
+                                                ]
+                                            },
+                                            "type": "ApiConnection",
+                                            "inputs": {
+                                                "host": {
+                                                    "connection": {
+                                                        "name": "@parameters('$connections')['office365']['connectionId']"
+                                                    }
+                                                },
+                                                "method": "post",
+                                                "body": {
+                                                    "MailboxAddress": "noreply@domain.com",
+                                                    "To": "@body('Parse_JSON_GET_Manager')?['mail']",
+                                                    "Subject": "Our new colleague @{item()?['givenName']} starts today!",
+                                                    "Body": "<p class=\"editor-paragraph\">Good morning @{body('Parse_JSON_GET_Manager')?['givenName']},</p><br><p class=\"editor-paragraph\">Today is a lovely day as a our new colleague @{item()?['givenName']} @{item()?['surname']} will start today at our company.</p><p class=\"editor-paragraph\"><br>To provide a great, passwordless, onboarding experience below you will find the Temporary Access Pass (TAP) for @{item()?['givenName']};</p><p class=\"editor-paragraph\">@{body('Parse_JSON_POST_Create_Temporary_Access_Pass')?['temporaryAccessPass']}</p><br><p class=\"editor-paragraph\">The TAP will be active at 9:00AM for 180 minutes.<br><br>Kind regards,<br><br>The HR team.</p>",
+                                                    "Importance": "Normal"
+                                                },
+                                                "path": "/v2/SharedMailbox/Mail"
+                                            },
+                                            "runtimeConfiguration": {
+                                                "secureData": {
+                                                    "properties": [
+                                                        "inputs",
+                                                        "outputs"
+                                                    ]
+                                                }
+                                            }
+                                        },
+                                        "Send_an_email_from_a_shared_mailbox_(V2)_-_new_user": {
+                                            "runAfter": {
+                                                "Parse_JSON_GET_Manager": [
+                                                    "Succeeded"
+                                                ]
+                                            },
+                                            "type": "ApiConnection",
+                                            "inputs": {
+                                                "host": {
+                                                    "connection": {
+                                                        "name": "@parameters('$connections')['office365']['connectionId']"
+                                                    }
+                                                },
+                                                "method": "post",
+                                                "body": {
+                                                    "MailboxAddress": "noreply@domaink.com",
+                                                    "To": "@first(item()?['otherMails'])",
+                                                    "Subject": "Welcome at Klapwijk",
+                                                    "Body": "<p class=\"editor-paragraph\">Dear ,<br><br>Today is your first day at In The Cloud 24-7 Company!<br><br>With this e-mail, we would like to welcome you at our company. Today you will be welcomed at our office by your manager @{body('Parse_JSON_GET_Manager')?['givenName']} @{body('Parse_JSON_GET_Manager')?['surname']}.<br><br>To provide you with a great onboarding experience you will need this username to sign in to your laptop; @{item()?['userPrincipalName']} .<br>As we want to work as much as possible without using a password, we created a Temporary Access Pass (TAP). Out of security reasons we shared the TAP with your manager.<br><br>Kind regards,<br><br>The In The Cloud 24-7 HR team</p>",
+                                                    "Importance": "Normal"
+                                                },
+                                                "path": "/v2/SharedMailbox/Mail"
+                                            }
+                                        }
+                                    },
+                                    "else": {
+                                        "actions": {}
+                                    },
+                                    "expression": {
+                                        "and": [
+                                            {
+                                                "startsWith": [
+                                                    "@items('For_each_disabled_user_account')?['employeeHireDate']",
+                                                    "@formatDateTime(utcNow(),'yyyy-MM-dd')"
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    "type": "If"
+                                }
+                            },
+                            "runAfter": {
+                                "Parse_JSON_Get_disabled_users": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "Foreach"
+                        }
+                    },
+                    "outputs": {}
+                },
+                "parameters": {
+                    "$connections": {
+                        "value": {
+                            "office365": {
+                                "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', parameters('LogicAppLocation'), '/managedApis/', 'office365')]",
+                                "connectionId": "[resourceId('Microsoft.Web/connections', parameters('connections_office365'))]",
+                                "connectionName": "[parameters('connections_office365')]"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ]
+}
