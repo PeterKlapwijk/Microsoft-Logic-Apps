@@ -1,7 +1,7 @@
 # Your tenant id (in Azure Portal, under Azure Active Directory -> Overview )
-$TenantID="97e31759-7b8e-4ee9-a4ab-b365da3b5433"
+$TenantID="XX-XX"
 # Object (principal) ID of the Manage Identity. Found under Identity section of the Logic App on the System assigned tab
-$ObjectId="a997b123-f237-4489-8167-3c9f0b71f688" 
+$ObjectId="XX-XX" 
 # Microsoft Graph App ID (DON'T CHANGE)
 $AzureAppId = "00000003-0000-0000-c000-000000000000"
 # Check the Microsoft Graph documentation for the permission you need for the operation
