@@ -216,7 +216,7 @@
                                                     "Content-Type": "application/json"
                                                 },
                                                 "body": {
-                                                    "startDateTime": "@{formatDateTime(utcNow(),'yyyy-MM-dd')}T09:00:00.000Z",
+                                                    "startDateTime": "@{formatDateTime(addHours(utcNow(),3),'yyyy-MM-ddTHH:mm:ssZ')}",
                                                     "lifetimeInMinutes": 180,
                                                     "isUsableOnce": false
                                                 },
