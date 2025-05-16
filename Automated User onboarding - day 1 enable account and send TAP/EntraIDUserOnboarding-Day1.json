@@ -87,7 +87,7 @@
                             "runAfter": {},
                             "type": "Http",
                             "inputs": {
-                                "uri": "https://graph.microsoft.com/v1.0/users?$select=id,displayName,givenName,surname,userPrincipalName,mail,otherMails,accountEnabled,createdDateTime,employeeHireDate&$filter=employeeHireDate%20le%20@{formatDateTime(addDays(utcNow(),1),'yyyy-MM-dd')}T00:00:00Z%20and%20createdDateTime%20ge%20@{formatDateTime(addDays(utcNow(),-7),'yyyy-MM-dd')}T00:00:00Z%20and%20accountEnabled%20eq%20false&$count=true",
+                                "uri": "https://graph.microsoft.com/v1.0/users?$select=id,displayName,givenName,surname,userPrincipalName,mail,otherMails,accountEnabled,createdDateTime,employeeHireDate&$filter=employeeHireDate%20ge%20@{formatDateTime(utcNow(), 'yyyy-MM-dd')}T00:00:00Z%20and%20employeeHireDate%20le%20@{formatDateTime(utcNow(), 'yyyy-MM-dd')}T23:59:59Z%20and%20accountEnabled%20eq%20false&$count=true",
                                 "method": "GET",
                                 "headers": {
                                     "ConsistencyLevel": "eventual"
@@ -384,7 +384,7 @@
                                                 },
                                                 "method": "post",
                                                 "body": {
-                                                    "MailboxAddress": "noreply@domaink.com",
+                                                    "MailboxAddress": "noreply@domain.com",
                                                     "To": "@first(item()?['otherMails'])",
                                                     "Subject": "Welcome at Klapwijk",
                                                     "Body": "<p class=\"editor-paragraph\">Dear ,<br><br>Today is your first day at In The Cloud 24-7 Company!<br><br>With this e-mail, we would like to welcome you at our company. Today you will be welcomed at our office by your manager @{body('Parse_JSON_GET_Manager')?['givenName']} @{body('Parse_JSON_GET_Manager')?['surname']}.<br><br>To provide you with a great onboarding experience you will need this username to sign in to your laptop; @{item()?['userPrincipalName']} .<br>As we want to work as much as possible without using a password, we created a Temporary Access Pass (TAP). Out of security reasons we shared the TAP with your manager.<br><br>Kind regards,<br><br>The In The Cloud 24-7 HR team</p>",
