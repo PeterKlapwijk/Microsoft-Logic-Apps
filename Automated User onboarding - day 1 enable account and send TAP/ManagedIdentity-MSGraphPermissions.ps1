@@ -6,26 +6,28 @@ $AssignMgPermissions = @(
     'UserAuthenticationMethod.ReadWrite.All' 
 )
 
-# Connect to Microsoft Graph
-Connect-MgGraph -TenantId $DestinationTenantId
+# Connect to Microsoft Graph with required scopes
+Connect-MgGraph -TenantId $TenantId -Scopes "AppRoleAssignment.ReadWrite.All"
 
 # Find the Microsoft Graph service principal details
 $graphServicePrincipal = Get-MgServicePrincipal -Filter "appId eq '$GraphAppId'"
 
+# Find the managed identity service principal
+$managedIdentity = Get-MgServicePrincipal -ServicePrincipalId $ManagedIdentityObjectID
 
 # Find the Microsoft Graph App role Ids for the specified permissions
 $appRoles = $graphServicePrincipal.AppRoles | Where-Object { ($_.Value -in $AssignMgPermissions) -and ($_.AllowedMemberTypes -contains 'Application') }
 
 # Assign the permission(s) to the managed identity:
 foreach ($AppPermission in $appRoles) {
-    $AppPermissionAssingment = @{
+    $params = @{
         'PrincipalId' = $ManagedIdentityObjectID
         'ResourceId'  = $graphServicePrincipal.Id
         'AppRoleId'   = $AppPermission.Id
     }
   
     New-MgServicePrincipalAppRoleAssignment `
-        -ServicePrincipalId $AppPermissionAssingment.PrincipalId `
-        -BodyParameter $AppPermissionAssingment `
+        -ServicePrincipalId $graphServicePrincipal.Id `
+        -BodyParameter $params `
         -Verbose
 }
